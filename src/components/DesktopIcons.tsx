@@ -27,7 +27,8 @@ export default function DesktopIcons() {
     });
   const moved = useRef(false);
   const dragStart = useRef<{ key: string; index: number; x: number; y: number; element: HTMLElement } | null>(null);
-  const rows = Math.max(1, Math.floor((innerHeight - 150) / 90));
+  const rowHeight = 110;
+  const rows = Math.max(1, Math.floor((innerHeight - 150) / rowHeight));
   const snapIcons = useOS(s => s.prefs.snapIcons);
   const notify = useOS((s) => s.notify);
   const load = () =>
@@ -80,7 +81,7 @@ export default function DesktopIcons() {
     const rect = start.element.parentElement!.getBoundingClientRect();
     const cols = Math.max(1, Math.floor((rect.width - 36) / 96));
     const from = slot(start.key, start.index);
-    const to = snapIcons ? { x: Math.max(0, Math.min(cols - 1, Math.floor((e.clientX - rect.left - 20) / 96))), y: Math.max(0, Math.min(rows - 1, Math.floor((e.clientY - rect.top - 20) / 90))) } : { x: Math.max(-100, Math.min(innerWidth - 120, from.x + dx)), y: Math.max(-50, Math.min(innerHeight - 180, from.y + dy)) };
+    const to = snapIcons ? { x: Math.max(0, Math.min(cols - 1, Math.floor((e.clientX - rect.left - 20) / 96))), y: Math.max(0, Math.min(rows - 1, Math.floor((e.clientY - rect.top - 20) / rowHeight))) } : { x: Math.max(-100, Math.min(innerWidth - 120, from.x + dx)), y: Math.max(-50, Math.min(innerHeight - 180, from.y + dy)) };
     const occupied = snapIcons && items.find((item, index) => item.key !== start.key && slot(item.key, index).x === to.x && slot(item.key, index).y === to.y);
     const next = { ...positions, [start.key]: to };
     if (occupied) next[occupied.key] = from;
@@ -117,13 +118,14 @@ export default function DesktopIcons() {
       <div
         className="desktop-icons desktop-icon-layout"
         style={{
-          gridTemplateRows: `repeat(${rows},90px)`,
+          gridTemplateRows: `repeat(${rows},${rowHeight}px)`,
           gridTemplateColumns: `repeat(auto-fill, 96px)`,
         }}
       >
         {items.map((item, index) => (
           <button
             key={item.key}
+            title={item.title}
             style={{
               ...(snapIcons ? { gridColumn: slot(item.key, index).x + 1, gridRow: slot(item.key, index).y + 1, transform: "none" } : { transform: `translate(${slot(item.key, index).x}px,${slot(item.key, index).y}px)` }),
             }}

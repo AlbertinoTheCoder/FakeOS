@@ -1362,7 +1362,10 @@ a {
 }
 .desktop-icon-layout > button {
   width: 90px;
-  height: 85px;
+  height: 104px;
+  padding: 6px;
+  gap: 6px;
+  justify-content: flex-start;
   touch-action: none;
   user-select: none;
   transition: background 0.12s, outline-color 0.12s;
@@ -1374,10 +1377,15 @@ a {
   border-color: #ffffff1e;
 }
 .desktop-icon-layout > button > span:last-child {
-  max-width: 90px;
+  width: 100%;
+  flex-shrink: 0;
+  line-height: 1.4;
+  min-height: 2.8em;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .desktop-shortcut-create {
   position: absolute;
