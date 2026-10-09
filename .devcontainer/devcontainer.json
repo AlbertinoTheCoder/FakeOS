@@ -1,0 +1,1 @@
+{"name":"FakeOS","image":"mcr.microsoft.com/devcontainers/javascript-node:22","forwardPorts":[5173],"portsAttributes":{"5173":{"label":"FakeOS","onAutoForward":"notify"}},"postCreateCommand":"npm install"}

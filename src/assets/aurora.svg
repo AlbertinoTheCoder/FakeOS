@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+<defs>
+<radialGradient id="night"><stop stop-color="#353167"/><stop offset="1" stop-color="#111827"/></radialGradient>
+<radialGradient id="violet"><stop stop-color="#7165c6" stop-opacity=".65"/><stop offset="1" stop-color="#6553b8" stop-opacity="0"/></radialGradient>
+<radialGradient id="blue"><stop stop-color="#5478be" stop-opacity=".55"/><stop offset="1" stop-color="#2c467d" stop-opacity="0"/></radialGradient>
+<radialGradient id="rose"><stop stop-color="#c18ba7" stop-opacity=".48"/><stop offset="1" stop-color="#a36185" stop-opacity="0"/></radialGradient>
+<linearGradient id="ribbon" x1=".1" y1="1" x2=".85" y2=".05"><stop stop-color="#7998d4" stop-opacity=".05"/><stop offset=".45" stop-color="#6977be" stop-opacity=".5"/><stop offset=".8" stop-color="#a897df" stop-opacity=".45"/><stop offset="1" stop-color="#b79ecf" stop-opacity=".05"/></linearGradient>
+<linearGradient id="edge" x2="1" y2=".7"><stop stop-color="#b6bfec" stop-opacity="0"/><stop offset=".5" stop-color="#d8c8f0" stop-opacity=".22"/><stop offset="1" stop-color="#c5a1c6" stop-opacity="0"/></linearGradient>
+</defs>
+<path fill="url(#night)" d="M0 0h1600v1000H0z"/>
+<ellipse fill="url(#violet)" cx="1160" cy="150" rx="760" ry="660"/>
+<ellipse fill="url(#blue)" cx="350" cy="1080" rx="960" ry="750"/>
+<ellipse fill="url(#rose)" cx="1420" cy="950" rx="710" ry="610"/>
+<path d="M580 1080C770 810 1200 790 1250 530S885 170 1140-100h400c-260 230-50 420-80 650s-450 355-575 530Z" fill="url(#ribbon)"/>
+<path d="M580 1080C770 810 1200 790 1250 530S885 170 1140-100" fill="none" stroke="url(#edge)" stroke-width="1.5"/>
+<path d="M1000 1120c20-340 570-445 470-720S1260 65 1640-120" fill="none" stroke="url(#edge)" stroke-width="1" opacity=".5"/>
+</svg>

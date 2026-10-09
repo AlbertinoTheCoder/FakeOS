@@ -1,0 +1,33 @@
+name: Bug report
+description: Help improve FakeOS with a reproducible report.
+title: "[Bug]: "
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: e.g. iPad Safari, Windows Chrome, iPhone Safari
+    validations:
+      required: true
+  - type: dropdown
+    id: interface
+    attributes:
+      label: FakeOS interface
+      options:
+        - Desktop
+        - Mobile
+    validations:
+      required: true

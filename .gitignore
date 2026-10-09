@@ -1,0 +1,19 @@
+node_modules
+dist
+test-results
+playwright-report
+
+*.tsbuildinfo
+
+# Local credentials, agent state, and generated artifacts
+.aws/
+.agents/
+.codex/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.log
+.DS_Store
+Thumbs.db
