@@ -85,6 +85,10 @@ React · TypeScript · Vite · Tailwind CSS · Lucide · Motion · Zustand · In
 
 Issues and focused pull requests are welcome. Please describe how to reproduce a bug, include the interface/device you used, and verify `npm test` and `npm run build` before opening a pull request.
 
+## License and credit
+
+FakeOS is licensed under the [MIT License](LICENSE). Copies and substantial portions must retain the copyright notice crediting **AlbertinoTheCoder** and the license notice. If you share a fork or deploy your own version, a visible link back to this project is appreciated.
+
 ---
 
 Made by [AlbertinoTheCoder](https://github.com/AlbertinoTheCoder).

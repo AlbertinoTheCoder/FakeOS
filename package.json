@@ -39,6 +39,7 @@
     "url": "git+https://github.com/AlbertinoTheCoder/FakeOS.git"
   },
   "author": "AlbertinoTheCoder",
+  "license": "MIT",
   "engines": {
     "node": ">=22.12.0"
   },
