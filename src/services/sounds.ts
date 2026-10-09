@@ -1,9 +1,10 @@
 import { useOS, type SoundCue } from "../store";
 
-export type UiSound = "click" | "toggle" | "open" | "close" | "focus" | "maximize" | "notification" | "alarm" | "drop" | "adjust";
+export type UiSound = "type" | "click" | "toggle" | "open" | "close" | "focus" | "maximize" | "notification" | "alarm" | "drop" | "adjust";
 let context: AudioContext | undefined;
 let master: GainNode | undefined;
 let lastSoundAt = 0;
+let lastTypingAt = -1;
 
 function audio() {
   if (typeof window === "undefined" || !("AudioContext" in window)) return undefined;
@@ -32,6 +33,10 @@ export async function playUiSound(type: UiSound, options: { force?: boolean } = 
   if (ctx.state !== "running") return false;
   const now = ctx.currentTime;
   if (type === "click" && lastSoundAt > 0 && now - lastSoundAt < 0.035) return false;
+  if (type === "type") {
+    if (!prefs.typingSound || now - lastTypingAt < 0.025) return false;
+    lastTypingAt = now;
+  }
   lastSoundAt = now;
   const play = (frequency: number, endFrequency: number, delay: number, length: number, volume: number, wave: OscillatorType = "sine") => {
     const oscillator = ctx.createOscillator(), envelope = ctx.createGain();
@@ -46,6 +51,7 @@ export async function playUiSound(type: UiSound, options: { force?: boolean } = 
     oscillator.start(start); oscillator.stop(end + 0.006);
   };
   switch (type) {
+    case "type": play(260 + Math.random() * 60, 130, 0, 0.035, 0.065, "triangle"); break;
     case "click": play(520, 410, 0, 0.065, 0.12, "triangle"); break;
     case "toggle": play(540, 690, 0, 0.075, 0.09); play(780, 900, 0.035, 0.08, 0.055); break;
     case "open": play(420, 580, 0, 0.12, 0.075); play(620, 820, 0.055, 0.12, 0.045); break;

@@ -47,6 +47,7 @@ interface Preferences {
   taskbarSize: number;
   focusMode: boolean;
   sound: boolean;
+  typingSound: boolean;
   sfxVolume: number;
   brightness: number;
   contrast: boolean;
@@ -89,6 +90,7 @@ export const useOS = create<OS>()(
         taskbarSize: 35,
         focusMode: false,
         sound: true,
+        typingSound: true,
         sfxVolume: 0.55,
         brightness: 1,
         contrast: false,

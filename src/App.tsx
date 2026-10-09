@@ -78,14 +78,22 @@ export default function App() {
     const click = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
       const control = event.target.closest<HTMLElement>("button:not(:disabled),a[href],[role='button'],[role='menuitem'],input[type='checkbox'],input[type='radio'],select,summary,label.button");
-      if (!control || control.closest("[data-sfx='off']")) return;
-      playUiSound(control.matches("input[type='checkbox'],input[type='radio']") ? "toggle" : "click");
+      if (event.target.closest("[data-sfx='off'],button:disabled")) return;
+      playUiSound(control?.matches("input[type='checkbox'],input[type='radio']") ? "toggle" : "click");
     };
     const change = (event: Event) => {
       if (event.target instanceof HTMLInputElement && event.target.type === "range") playUiSound("adjust");
     };
+    const typing = (event: Event) => {
+      const target = event.target;
+      if (!(event instanceof InputEvent) || !(target instanceof HTMLElement) || event.isComposing) return;
+      if (target.closest("[data-sfx='off']") || (target instanceof HTMLInputElement && target.type === "password")) return;
+      if (!target.matches("textarea,input:not([type]),input[type='text'],input[type='search'],input[type='email'],input[type='url'],[contenteditable='true']")) return;
+      if (["insertText", "insertCompositionText", "insertFromComposition", "insertLineBreak", "insertParagraph", "deleteContentBackward", "deleteContentForward"].includes(event.inputType)) void playUiSound("type");
+    };
     const contextMenu = () => playUiSound("click");
     const drop = (event: DragEvent) => { if (event.dataTransfer?.files.length) playUiSound("drop"); };
+    document.addEventListener("input", typing, true);
     document.addEventListener("click", click, true);
     document.addEventListener("change", change, true);
     document.addEventListener("drop", drop);
@@ -102,6 +110,7 @@ export default function App() {
       if (currentNotification && currentNotification.id !== previous.notifications[0]?.id) soundForNotification(currentNotification.cue);
     });
     return () => {
+      document.removeEventListener("input", typing, true);
       document.removeEventListener("click", click, true);
       document.removeEventListener("change", change, true);
       document.removeEventListener("drop", drop);

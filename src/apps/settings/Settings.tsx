@@ -150,6 +150,7 @@ export default function Settings() {
       <section>
         <h3>System & accessibility</h3>
         <label>Sound effects<input type="checkbox" checked={p.sound} onChange={e => setPrefs({ sound: e.target.checked })} /></label>
+        <label>Typing sounds<input type="checkbox" checked={p.typingSound} disabled={!p.sound} onChange={e => setPrefs({ typingSound: e.target.checked })} /></label>
         <label>Sound effect volume<input aria-label="Sound effect volume" type="range" min="0" max="1" step=".05" value={p.sfxVolume} disabled={!p.sound} onChange={e => setPrefs({ sfxVolume: Number(e.target.value) })} /></label>
         <button data-sfx="off" disabled={!p.sound || p.sfxVolume === 0} onClick={async () => {
           const played = await playUiSound("notification");
