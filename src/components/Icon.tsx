@@ -12,6 +12,7 @@ import {
   Clock,
   ShoppingBag,
   Gamepad2,
+  Trash2,
 } from "lucide-react";
 import type { AppId } from "../store";
 const icons = {
@@ -28,6 +29,7 @@ const icons = {
   Clock,
   Store: ShoppingBag,
   Games: Gamepad2,
+  Trash: Trash2,
 };
 export default function Icon({
   app,

@@ -14,6 +14,7 @@ export const apps = [
   "Clock",
   "Store",
   "Games",
+  "Trash",
 ] as const;
 export type AppId = (typeof apps)[number];
 export type SoundCue = "notification" | "alarm";
@@ -102,6 +103,8 @@ export const useOS = create<OS>()(
       setPrefs: (p) => set({ prefs: { ...get().prefs, ...p } }),
       open: (app, data) => {
         const id = crypto.randomUUID();
+        const width = Math.min(900, Math.max(280, innerWidth - 24));
+        const height = Math.min(700, Math.max(220, innerHeight - 160));
         set({
           windows: [
             ...get().windows,
@@ -113,18 +116,18 @@ export const useOS = create<OS>()(
                 6,
                 Math.min(
                   80 + get().windows.length * 26,
-                  innerWidth - Math.min(820, innerWidth - 24) - 6,
+                  innerWidth - width - 6,
                 ),
               ),
               y: Math.max(
                 38,
                 Math.min(
                   65 + get().windows.length * 20,
-                  innerHeight - Math.min(560, innerHeight - 110) - 85,
+                  innerHeight - height - 85,
                 ),
               ),
-              width: Math.min(820, innerWidth - 24),
-              height: Math.min(560, innerHeight - 110),
+              width,
+              height,
               minimized: false,
               maximized: false,
             },

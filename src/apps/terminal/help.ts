@@ -62,7 +62,7 @@ const commands: Record<string, CommandHelp> = {
     usage: "rm path",
     description: "Move a file or folder to Trash.",
     example: "rm todo.txt",
-    note: "Restore it using the Files app's Trash location. Shell flags such as -r and -f are not supported.",
+    note: "Restore it with the Trash app or the Trash location in Files. Shell flags such as -r and -f are not supported.",
   },
   mv: {
     usage: "mv source destination",

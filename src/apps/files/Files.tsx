@@ -101,7 +101,12 @@ export default function Files({ data }: { data?: string }) {
         else await fs.put({ ...f, parent: "Trash", originalParent: f.parent });
       }
       if (type === "restore")
-        await fs.put({ ...f, parent: f.originalParent || "Documents" });
+        await fs.put({
+          ...f,
+          parent: entries.some(e => e.id === f.originalParent && e.kind === "folder" && e.parent !== "Trash") ? f.originalParent! : "Documents",
+          originalParent: undefined,
+          updated: Date.now(),
+        });
       if (type === "rename") {
         const name = prompt("New name", f.name);
         if (name) await fs.put({ ...f, name });
@@ -165,6 +170,12 @@ export default function Files({ data }: { data?: string }) {
           </button>
         </div>
         <div className="toolbar wrap">
+          {folder === "Trash" && <button disabled={!entries.some(e => e.parent === "Trash")} onClick={async () => {
+            const items = entries.filter(e => e.parent === "Trash");
+            if (!items.length || !confirm(`Permanently delete ${items.length} item${items.length === 1 ? "" : "s"} in Trash? This cannot be undone.`)) return;
+            try { for (const entry of items) await fs.remove(entry.id); select([]); refresh(); os.notify("Trash emptied", `${items.length} item${items.length === 1 ? "" : "s"} permanently deleted.`); }
+            catch (error) { os.notify("Could not empty Trash", String(error)); }
+          }}>Empty Trash</button>}
           <button
             onClick={() =>
               create("folder").catch((e) =>

@@ -223,6 +223,7 @@ small {
 }
 .icon-store { background:linear-gradient(145deg,#edb974,#d77b73); }
 .icon-games { background:linear-gradient(145deg,#9d88ec,#6356b2); }
+.icon-trash { background:linear-gradient(145deg,#7888a1,#4b596e); }
 .desktop-greeting {
   position: absolute;
   top: 23%;
@@ -377,7 +378,11 @@ small {
   min-height: 0;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--muted) 45%, transparent) transparent;
 }
+.window-content::-webkit-scrollbar { width: 8px; height: 8px; }
+.window-content::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 45%, transparent); border-radius: 8px; }
 .window-content :where(button, input, select, textarea) {
   line-height: 1.35;
 }

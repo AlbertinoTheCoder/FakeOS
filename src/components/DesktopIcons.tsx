@@ -3,7 +3,7 @@ import { apps, type AppId, useOS } from "../store";
 import { fs, type Entry } from "../services/filesystem";
 import { createShortcut, openEntry, shortcutMime } from "../services/shortcuts";
 import Icon from "./Icon";
-const defaults: AppId[] = ["Files", "Browser", "Notes", "Terminal", "Settings", "Store", "Games"];
+const defaults: AppId[] = ["Files", "Browser", "Notes", "Terminal", "Settings", "Store", "Games", "Trash"];
 export default function DesktopIcons() {
   const [entries, setEntries] = useState<Entry[]>([]),
     [menu, setMenu] = useState<Entry | null>(null),

@@ -25,7 +25,7 @@ Open a terminal, write a note, draw something, or organize your files. FakeOS br
 
 - **A real desktop experience:** draggable and resizable windows, snapping, taskbar, Start menu, shortcuts, and keyboard navigation. Computers and iPads share this interface.
 - **A distinct phone interface:** home-screen pages, app folders, a dock, full-screen apps, and a multitasking switcher. Settings lets you choose either interface manually.
-- **Thirteen working applications:** Files, Editor, Terminal, Calculator, Notes, Paint, Music, Browser, Settings, Activity, Clock, Store, and Games.
+- **Fourteen working applications:** Files, Editor, Terminal, Calculator, Notes, Paint, Music, Browser, Settings, Activity, Clock, Store, Games, and Trash.
 - **A shared filesystem:** documents, notes, images, and imported media are saved in IndexedDB and shared by the two interfaces in the same browser.
 - **Paint that does more:** brush, eraser, fill, shapes, zoom, PNG reopening, and downloads to your computer.
 - **Make it yours:** themes, wallpapers, accent colors, desktop shortcuts, app folders, contrast, text scaling, and reduced motion.
