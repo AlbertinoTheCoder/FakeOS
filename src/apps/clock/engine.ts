@@ -1,27 +1,9 @@
 import { useEffect } from "react";
 import { useClock } from "./clockStore";
 import { useOS } from "../../store";
-let audio: AudioContext | undefined;
+import { unlockUiAudio } from "../../services/sounds";
 export function enableClockSound() {
-  try {
-    audio ??= new AudioContext();
-    void audio.resume();
-  } catch {
-    /* Visual notifications remain available. */
-  }
-}
-function ring() {
-  if (!useOS.getState().prefs.sound || !audio || audio.state !== "running")
-    return;
-  const oscillator = audio.createOscillator(),
-    gain = audio.createGain();
-  oscillator.connect(gain);
-  gain.connect(audio.destination);
-  oscillator.frequency.value = 660;
-  gain.gain.setValueAtTime(0.15, audio.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.7);
-  oscillator.start();
-  oscillator.stop(audio.currentTime + 0.7);
+  unlockUiAudio();
 }
 export function useClockEngine(enabled: boolean) {
   useEffect(() => {
@@ -33,8 +15,7 @@ export function useClockEngine(enabled: boolean) {
         state.update({ timer: { deadline: null, remaining: 0 } });
         useOS
           .getState()
-          .notify("Timer finished", "Your FakeOS timer is complete.");
-        ring();
+          .notify("Timer finished", "Your FakeOS timer is complete.", "alarm");
       }
       const due = state.alarms.filter((a) => a.enabled && a.nextAt <= now);
       if (due.length) {
@@ -44,8 +25,7 @@ export function useClockEngine(enabled: boolean) {
           ),
         });
         for (const alarm of due)
-          useOS.getState().notify("Alarm", alarm.label || alarm.time);
-        ring();
+          useOS.getState().notify("Alarm", alarm.label || alarm.time, "alarm");
       }
     };
     check();

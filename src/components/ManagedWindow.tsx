@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Minus, Maximize2, X } from "lucide-react";
 import { useOS, type WindowState } from "../store";
 import Icon from "./Icon";
+import { playUiSound } from "../services/sounds";
 const Application = lazy(() => import("../apps"));
 export default function ManagedWindow({ window: w }: { window: WindowState }) {
   const os = useOS();
@@ -42,20 +43,23 @@ export default function ManagedWindow({ window: w }: { window: WindowState }) {
       globalThis.window.removeEventListener("pointerup", up);
       if (!resize) {
         if (event.clientY < 48) os.update(w.id, { maximized: true });
-        else if (event.clientX < 20)
+        else if (event.clientX < 20) {
+          playUiSound("maximize");
           os.update(w.id, {
             x: 6,
             y: 38,
             width: innerWidth / 2 - 9,
             height: innerHeight - 118,
           });
-        else if (event.clientX > innerWidth - 20)
+        } else if (event.clientX > innerWidth - 20) {
+          playUiSound("maximize");
           os.update(w.id, {
             x: innerWidth / 2 + 3,
             y: 38,
             width: innerWidth / 2 - 9,
             height: innerHeight - 118,
           });
+        }
       }
     };
     globalThis.window.addEventListener("pointermove", move);

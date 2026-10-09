@@ -16,6 +16,7 @@ export const apps = [
   "Games",
 ] as const;
 export type AppId = (typeof apps)[number];
+export type SoundCue = "notification" | "alarm";
 export interface WindowState {
   id: string;
   app: AppId;
@@ -45,6 +46,7 @@ interface Preferences {
   taskbarSize: number;
   focusMode: boolean;
   sound: boolean;
+  sfxVolume: number;
   brightness: number;
   contrast: boolean;
   snapIcons: boolean;
@@ -55,14 +57,14 @@ interface OS {
   prefs: Preferences;
   windows: WindowState[];
   active: string | null;
-  notifications: { id: string; title: string; message: string }[];
+  notifications: { id: string; title: string; message: string; cue: SoundCue }[];
   pinned: AppId[];
   setPrefs: (p: Partial<Preferences>) => void;
   open: (app: AppId, data?: string) => void;
   update: (id: string, p: Partial<WindowState>) => void;
   close: (id: string) => void;
   focus: (id: string) => void;
-  notify: (title: string, message: string) => void;
+  notify: (title: string, message: string, cue?: SoundCue) => void;
   dismiss: (id?: string) => void;
   pinApp: (app: AppId) => void;
 }
@@ -86,6 +88,7 @@ export const useOS = create<OS>()(
         taskbarSize: 35,
         focusMode: false,
         sound: true,
+        sfxVolume: 0.55,
         brightness: 1,
         contrast: false,
         snapIcons: true,
@@ -149,10 +152,10 @@ export const useOS = create<OS>()(
             w.id === id ? { ...w, minimized: false } : w,
           ),
         }),
-      notify: (title, message) =>
+      notify: (title, message, cue = "notification") =>
         set({
           notifications: [
-            { id: crypto.randomUUID(), title, message },
+            { id: crypto.randomUUID(), title, message, cue },
             ...get().notifications,
           ].slice(0, 30),
         }),
@@ -185,6 +188,7 @@ export const useOS = create<OS>()(
         if (!["auto", "desktop", "mobile"].includes(prefs.mode))
           prefs.mode = "auto";
         prefs.brightness = Math.max(0.45, Math.min(1, prefs.brightness));
+        prefs.sfxVolume = Math.max(0, Math.min(1, prefs.sfxVolume));
         prefs.taskbarSize = Math.max(28, Math.min(46, prefs.taskbarSize));
         prefs.scale = Math.max(0.85, Math.min(1.25, prefs.scale));
         prefs.opacity = Math.max(0.5, Math.min(1, prefs.opacity));

@@ -4,20 +4,20 @@ import { useOS } from "../../store";
 type ThemeProfile = {
   id: string;
   name: string;
-  prefs: { theme: string; wallpaper: string; accent: string; opacity: number; alignment: string; sound: boolean };
+  prefs: { theme: string; wallpaper: string; accent: string; opacity: number; alignment: string; sound: boolean; sfxVolume: number };
   layout: Record<string, string>;
 };
 export default function Settings() {
   const { prefs: p, setPrefs, notify } = useOS();
   const [usage, setUsage] = useState("");
   const [themes, setThemes] = useState<ThemeProfile[]>(() => {
-    try { const saved = JSON.parse(localStorage.getItem("fakeos-theme-profiles") || "[]"); return Array.isArray(saved) ? saved.filter((x): x is ThemeProfile => x && typeof x.name === "string" && x.prefs && typeof x.layout === "object") : []; } catch { return []; }
+    try { const saved = JSON.parse(localStorage.getItem("fakeos-theme-profiles") || "[]"); return Array.isArray(saved) ? saved.filter((x): x is ThemeProfile => x && typeof x.name === "string" && x.prefs && typeof x.prefs === "object" && x.layout && typeof x.layout === "object" && !Array.isArray(x.layout)).map(x => ({ ...x, prefs: { ...x.prefs, sfxVolume: typeof x.prefs.sfxVolume === "number" ? x.prefs.sfxVolume : 0.55 } })) : []; } catch { return []; }
   });
   const saveTheme = () => {
     const name = prompt("Name this theme setup", "My theme");
     if (!name?.trim()) return;
     const layout = Object.fromEntries(Object.keys(localStorage).filter(key => key === "fakeos-desktop-positions" || key === "fakeos-mobile-layout" || key.startsWith("fakeos-icon-")).map(key => [key, localStorage.getItem(key) || ""]));
-    const next = [{ id: crypto.randomUUID(), name: name.trim(), prefs: { theme: p.theme, wallpaper: p.wallpaper, accent: p.accent, opacity: p.opacity, alignment: p.alignment, sound: p.sound }, layout }, ...themes].slice(0, 12);
+    const next = [{ id: crypto.randomUUID(), name: name.trim(), prefs: { theme: p.theme, wallpaper: p.wallpaper, accent: p.accent, opacity: p.opacity, alignment: p.alignment, sound: p.sound, sfxVolume: p.sfxVolume }, layout }, ...themes].slice(0, 12);
     try { localStorage.setItem("fakeos-theme-profiles", JSON.stringify(next)); setThemes(next); notify("Theme saved", `“${name.trim()}” is ready to apply later.`); } catch { notify("Theme could not be saved", "Browser storage may be full. Remove a large wallpaper or backup to make room."); }
   };
   const applyTheme = (theme: ThemeProfile) => {
@@ -147,6 +147,8 @@ export default function Settings() {
       </section>
       <section>
         <h3>System & accessibility</h3>
+        <label>Sound effects<input type="checkbox" checked={p.sound} onChange={e => setPrefs({ sound: e.target.checked })} /></label>
+        <label>Sound effect volume<input aria-label="Sound effect volume" type="range" min="0" max="1" step=".05" value={p.sfxVolume} disabled={!p.sound} onChange={e => setPrefs({ sfxVolume: Number(e.target.value) })} /></label>
         <label>Desktop icon snap grid<input type="checkbox" checked={p.snapIcons} onChange={e => { setPrefs({ snapIcons: e.target.checked }); window.dispatchEvent(new Event("fakeos-reset-icon-grid")); }} /></label>
         <label>Desktop widgets<input type="checkbox" checked={p.widgets} onChange={e => setPrefs({ widgets: e.target.checked })} /></label>
         <label>

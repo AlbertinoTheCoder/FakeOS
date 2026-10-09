@@ -32,6 +32,7 @@ import { apps, useOS, type AppId, type WindowState } from "./store";
 import { detectMobile } from "./device";
 import NotificationToast from "./components/NotificationToast";
 import { fs } from "./services/filesystem";
+import { playUiSound, soundForNotification } from "./services/sounds";
 const Application = lazy(() => import("./apps"));
 function MobileHomeWidget({ open }: { open: (app: AppId) => void }) {
   const [note, setNote] = useState("");
@@ -72,6 +73,41 @@ export default function App() {
     fs.init().catch((e) => os.notify("Storage unavailable", String(e)));
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    const click = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      const control = event.target.closest<HTMLElement>("button:not(:disabled),a[href],[role='button'],[role='menuitem'],input[type='checkbox'],input[type='radio'],select,summary,label.button");
+      if (!control || control.closest("[data-sfx='off']")) return;
+      playUiSound(control.matches("input[type='checkbox'],input[type='radio']") ? "toggle" : "click");
+    };
+    const change = (event: Event) => {
+      if (event.target instanceof HTMLInputElement && event.target.type === "range") playUiSound("adjust");
+    };
+    const contextMenu = () => playUiSound("click");
+    const drop = (event: DragEvent) => { if (event.dataTransfer?.files.length) playUiSound("drop"); };
+    document.addEventListener("click", click, true);
+    document.addEventListener("change", change, true);
+    document.addEventListener("drop", drop);
+    document.addEventListener("contextmenu", contextMenu);
+    const unsubscribe = useOS.subscribe((state, previous) => {
+      const added = state.windows.some(w => !previous.windows.some(old => old.id === w.id));
+      const removed = previous.windows.some(w => !state.windows.some(current => current.id === w.id));
+      if (added) playUiSound("open");
+      else if (removed) playUiSound("close");
+      else if (state.active !== previous.active) playUiSound("focus");
+      else if (state.windows.some(w => { const old = previous.windows.find(x => x.id === w.id); return old && old.maximized !== w.maximized; })) playUiSound("maximize");
+      else if (state.windows.some(w => { const old = previous.windows.find(x => x.id === w.id); return old && old.minimized !== w.minimized; })) playUiSound(state.windows.some(w => { const old = previous.windows.find(x => x.id === w.id); return old && old.minimized && !w.minimized; }) ? "open" : "close");
+      const currentNotification = state.notifications[0];
+      if (currentNotification && currentNotification.id !== previous.notifications[0]?.id) soundForNotification(currentNotification.cue);
+    });
+    return () => {
+      document.removeEventListener("click", click, true);
+      document.removeEventListener("change", change, true);
+      document.removeEventListener("drop", drop);
+      document.removeEventListener("contextmenu", contextMenu);
+      unsubscribe();
+    };
   }, []);
   useEffect(() => {
     const onError = (event: PromiseRejectionEvent) => {
