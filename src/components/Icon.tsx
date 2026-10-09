@@ -10,6 +10,8 @@ import {
   Settings,
   Activity,
   Clock,
+  ShoppingBag,
+  Gamepad2,
 } from "lucide-react";
 import type { AppId } from "../store";
 const icons = {
@@ -24,6 +26,8 @@ const icons = {
   Settings,
   Activity,
   Clock,
+  Store: ShoppingBag,
+  Games: Gamepad2,
 };
 export default function Icon({
   app,

@@ -1,4 +1,5 @@
 import DesktopIcons from "./components/DesktopIcons";
+import DesktopWidgets from "./components/DesktopWidgets";
 import { useClockEngine } from "./apps/clock/engine";
 import MobileAppGrid from "./components/MobileAppGrid";
 import Icon from "./components/Icon";
@@ -32,6 +33,15 @@ import { detectMobile } from "./device";
 import NotificationToast from "./components/NotificationToast";
 import { fs } from "./services/filesystem";
 const Application = lazy(() => import("./apps"));
+function MobileHomeWidget({ open }: { open: (app: AppId) => void }) {
+  const [note, setNote] = useState("");
+  useEffect(() => {
+    const load = () => void fs.all().then(entries => setNote(entries.find(e => e.mime === "application/fakeos-note" && e.parent !== "Trash")?.content || ""));
+    load(); window.addEventListener("fakeos-files-changed", load);
+    return () => window.removeEventListener("fakeos-files-changed", load);
+  }, []);
+  return <button className="mobile-note-widget" onClick={() => open("Notes")}><small>QUICK NOTE</small><span>{note.slice(0, 85) || "Tap to open Notes and jot something down."}</span></button>;
+}
 export default function App() {
   const os = useOS(),
     [phase, setPhase] = useState<
@@ -344,6 +354,7 @@ export default function App() {
                     })}
                   </p>
                 </div>
+                {os.prefs.widgets && page === 0 && <MobileHomeWidget open={open} />}
                 <MobileAppGrid page={page} open={open} />
                 <div className="pages">
                   <button
@@ -506,6 +517,7 @@ export default function App() {
                 }}
               >
                 <DesktopIcons />
+                {os.prefs.widgets && <DesktopWidgets />}
                 <div className="desktop-greeting">
                   <small>A SPACE TO CALL YOUR OWN</small>
                   <h1>

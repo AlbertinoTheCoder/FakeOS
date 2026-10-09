@@ -11,6 +11,8 @@ const Music = lazy(() => import("./apps/music/Music"));
 const Browser = lazy(() => import("./apps/browser/Browser"));
 const Activity = lazy(() => import("./apps/activity/Activity"));
 const Clock = lazy(() => import("./apps/clock/Clock"));
+const Store = lazy(() => import("./apps/store/Store"));
+const Games = lazy(() => import("./apps/games/Games"));
 export default function Application({
   app,
   data,
@@ -43,5 +45,9 @@ export default function Application({
       return <Activity />;
     case "Clock":
       return <Clock />;
+    case "Store":
+      return <Store />;
+    case "Games":
+      return <Games />;
   }
 }

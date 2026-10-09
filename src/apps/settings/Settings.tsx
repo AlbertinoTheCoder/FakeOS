@@ -1,11 +1,31 @@
 import WorkspaceBackup from "../../components/WorkspaceBackup";
-import { useEffect, useRef, useState } from "react";
-import { fs, type Entry } from "../../services/filesystem";
-import { useOS, type AppId } from "../../store";
-import { download } from "../../utils/download";
+import { useEffect, useState } from "react";
+import { useOS } from "../../store";
+type ThemeProfile = {
+  id: string;
+  name: string;
+  prefs: { theme: string; wallpaper: string; accent: string; opacity: number; alignment: string; sound: boolean };
+  layout: Record<string, string>;
+};
 export default function Settings() {
-  const { prefs: p, setPrefs } = useOS();
+  const { prefs: p, setPrefs, notify } = useOS();
   const [usage, setUsage] = useState("");
+  const [themes, setThemes] = useState<ThemeProfile[]>(() => {
+    try { const saved = JSON.parse(localStorage.getItem("fakeos-theme-profiles") || "[]"); return Array.isArray(saved) ? saved.filter((x): x is ThemeProfile => x && typeof x.name === "string" && x.prefs && typeof x.layout === "object") : []; } catch { return []; }
+  });
+  const saveTheme = () => {
+    const name = prompt("Name this theme setup", "My theme");
+    if (!name?.trim()) return;
+    const layout = Object.fromEntries(Object.keys(localStorage).filter(key => key === "fakeos-desktop-positions" || key === "fakeos-mobile-layout" || key.startsWith("fakeos-icon-")).map(key => [key, localStorage.getItem(key) || ""]));
+    const next = [{ id: crypto.randomUUID(), name: name.trim(), prefs: { theme: p.theme, wallpaper: p.wallpaper, accent: p.accent, opacity: p.opacity, alignment: p.alignment, sound: p.sound }, layout }, ...themes].slice(0, 12);
+    try { localStorage.setItem("fakeos-theme-profiles", JSON.stringify(next)); setThemes(next); notify("Theme saved", `“${name.trim()}” is ready to apply later.`); } catch { notify("Theme could not be saved", "Browser storage may be full. Remove a large wallpaper or backup to make room."); }
+  };
+  const applyTheme = (theme: ThemeProfile) => {
+    setPrefs(theme.prefs);
+    for (const key of ["fakeos-desktop-positions", "fakeos-mobile-layout", ...Object.keys(localStorage).filter(k => k.startsWith("fakeos-icon-"))]) localStorage.removeItem(key);
+    for (const [key, value] of Object.entries(theme.layout)) localStorage.setItem(key, value);
+    window.dispatchEvent(new Event("fakeos-layout-restored"));
+  };
   useEffect(() => {
     navigator.storage
       ?.estimate()
@@ -52,6 +72,18 @@ export default function Settings() {
       </section>
       <section>
         <h3>Personalization</h3>
+        <div className="theme-presets" aria-label="Theme presets">
+          <b>Theme collections</b>
+          <div className="theme-preset-grid">
+            {[
+              { name: "Aurora", wallpaper: "aurora", accent: "#a78bfa", theme: "dark" },
+              { name: "Coast", wallpaper: "ocean", accent: "#54c9c0", theme: "dark" },
+              { name: "Golden hour", wallpaper: "dusk", accent: "#ffb36b", theme: "dark" },
+              { name: "Paper sky", wallpaper: "ocean", accent: "#5377d2", theme: "light" },
+            ].map(t => <button key={t.name} className="theme-preset" onClick={() => setPrefs({ wallpaper: t.wallpaper, accent: t.accent, theme: t.theme })}><span style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.wallpaper === "dusk" ? "#fa8a61" : t.wallpaper === "ocean" ? "#0b8290" : "#37265e"})` }} />{t.name}</button>)}
+          </div>
+          <div className="saved-themes"><div className="toolbar"><b>Your saved setups</b><button onClick={saveTheme}>Save current setup</button></div>{themes.map(theme => <div className="saved-theme" key={theme.id}><span><i style={{ background: theme.prefs.accent }} />{theme.name}</span><button onClick={() => applyTheme(theme)}>Apply</button><button aria-label={`Delete ${theme.name}`} onClick={() => { const next = themes.filter(x => x.id !== theme.id); setThemes(next); localStorage.setItem("fakeos-theme-profiles", JSON.stringify(next)); }}>Remove</button></div>)}</div>
+        </div>
         <label>
           Theme
           <select
@@ -115,6 +147,8 @@ export default function Settings() {
       </section>
       <section>
         <h3>System & accessibility</h3>
+        <label>Desktop icon snap grid<input type="checkbox" checked={p.snapIcons} onChange={e => { setPrefs({ snapIcons: e.target.checked }); window.dispatchEvent(new Event("fakeos-reset-icon-grid")); }} /></label>
+        <label>Desktop widgets<input type="checkbox" checked={p.widgets} onChange={e => setPrefs({ widgets: e.target.checked })} /></label>
         <label>
           Interface
           <select

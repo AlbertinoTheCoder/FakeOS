@@ -12,6 +12,8 @@ export const apps = [
   "Settings",
   "Activity",
   "Clock",
+  "Store",
+  "Games",
 ] as const;
 export type AppId = (typeof apps)[number];
 export interface WindowState {
@@ -45,6 +47,9 @@ interface Preferences {
   sound: boolean;
   brightness: number;
   contrast: boolean;
+  snapIcons: boolean;
+  widgets: boolean;
+  installedGames: string[];
 }
 interface OS {
   prefs: Preferences;
@@ -83,6 +88,9 @@ export const useOS = create<OS>()(
         sound: true,
         brightness: 1,
         contrast: false,
+        snapIcons: true,
+        widgets: true,
+        installedGames: [],
       },
       windows: [],
       active: null,

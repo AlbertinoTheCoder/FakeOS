@@ -8,13 +8,15 @@ import { useEffect, useRef, useState } from "react";
 import { fs, type Entry } from "../../services/filesystem";
 import { useOS, type AppId } from "../../store";
 import { download } from "../../utils/download";
+import { makeZip, readZip } from "../../services/zip";
 export default function Files({ data }: { data?: string }) {
   const [entries, setEntries] = useState<Entry[]>([]),
     [folder, setFolder] = useState("/"),
     [search, setSearch] = useState(""),
     [selected, select] = useState<string[]>([]),
     [list, setList] = useState(false),
-    [preview, setPreview] = useState<Entry | null>(null);
+    [preview, setPreview] = useState<Entry | null>(null),
+    [draggingFiles, setDraggingFiles] = useState(false);
   const os = useOS();
   const refresh = () =>
     fs
@@ -35,6 +37,21 @@ export default function Files({ data }: { data?: string }) {
       });
   }, [data]);
   const current = entries.find((f) => f.id === folder);
+  const importLocal = async (files: FileList | File[]) => {
+    for (const file of Array.from(files)) {
+      if (file.name.toLowerCase().endsWith(".zip")) {
+        const unpacked = await readZip(file, folder === "/" ? "Downloads" : folder);
+        await fs.importFiles(unpacked);
+      } else {
+        const content = file.type.startsWith("text/") || file.name.toLowerCase().endsWith(".txt")
+          ? await file.text()
+          : await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(file); });
+        await fs.create(file.name, folder === "/" ? "Downloads" : folder, "file", content, file.type || "application/octet-stream");
+      }
+    }
+    refresh();
+    os.notify("Import complete", `${files.length} item${files.length === 1 ? "" : "s"} added to Files.`);
+  };
   const create = async (kind: Entry["kind"]) => {
     const name = prompt(
       "Name",
@@ -115,7 +132,7 @@ export default function Files({ data }: { data?: string }) {
     refresh();
   };
   return (
-    <div className="file-app">
+    <div className={`file-app ${draggingFiles ? "file-drop-active" : ""}`} onDragOver={e => { e.preventDefault(); setDraggingFiles(true); }} onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDraggingFiles(false); }} onDrop={e => { e.preventDefault(); setDraggingFiles(false); importLocal(e.dataTransfer.files).catch(error => os.notify("Import failed", String(error))); }}>
       {preview && (
         <FilePreview file={preview} onClose={() => setPreview(null)} />
       )}
@@ -165,38 +182,22 @@ export default function Files({ data }: { data?: string }) {
             New file
           </button>
           <label className="button">
-            Upload
+            Import files / ZIP
             <input
               hidden
               type="file"
               multiple
-              onChange={async (e) => {
-                for (const file of Array.from(e.target.files || [])) {
-                  const content = await new Promise<string>(
-                    (resolve, reject) => {
-                      const reader = new FileReader();
-                      reader.onload = () => resolve(String(reader.result));
-                      reader.onerror = reject;
-                      if (
-                        file.type.startsWith("text") ||
-                        file.name.endsWith(".txt")
-                      )
-                        reader.readAsText(file);
-                      else reader.readAsDataURL(file);
-                    },
-                  );
-                  await fs.create(
-                    file.name,
-                    folder === "/" ? "Downloads" : folder,
-                    "file",
-                    content,
-                    file.type,
-                  );
-                }
-                refresh();
-              }}
+              accept="*/*,.zip"
+              onChange={async e => { try { if (e.target.files?.length) await importLocal(e.target.files); } catch (error) { os.notify("Import failed", String(error)); } e.target.value = ""; }}
             />
           </label>
+          <button disabled={!selected.length} onClick={() => {
+            const result: Entry[] = [];
+            const visit = (id: string, path = "") => { for (const entry of entries.filter(e => e.parent === id)) { const name = path ? `${path}/${entry.name}` : entry.name; if (entry.kind === "file") result.push({ ...entry, name }); else visit(entry.id, name); } };
+            for (const id of selected) { const entry = entries.find(e => e.id === id); if (entry?.kind === "file") result.push(entry); else if (entry?.kind === "folder") visit(entry.id, entry.name); }
+            if (!result.length) { os.notify("Nothing to export", "Select a folder or file with content first."); return; }
+            const blob = makeZip(result), a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${entries.find(e => selected.includes(e.id))?.name || "FakeOS files"}.zip`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+          }}>Download ZIP</button>
           {[
             "rename",
             "shortcut",
@@ -258,6 +259,7 @@ export default function Files({ data }: { data?: string }) {
           {entries.filter((e) => e.parent === folder).length} items · Stored in
           this browser
         </small>
+        {draggingFiles && <div className="file-drop-overlay">Drop files or a ZIP to import them</div>}
       </main>
     </div>
   );

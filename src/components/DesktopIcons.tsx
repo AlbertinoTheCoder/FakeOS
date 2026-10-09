@@ -3,7 +3,7 @@ import { apps, type AppId, useOS } from "../store";
 import { fs, type Entry } from "../services/filesystem";
 import { createShortcut, openEntry, shortcutMime } from "../services/shortcuts";
 import Icon from "./Icon";
-const defaults: AppId[] = ["Files", "Browser", "Notes", "Terminal", "Settings"];
+const defaults: AppId[] = ["Files", "Browser", "Notes", "Terminal", "Settings", "Store", "Games"];
 export default function DesktopIcons() {
   const [entries, setEntries] = useState<Entry[]>([]),
     [menu, setMenu] = useState<Entry | null>(null),
@@ -14,6 +14,10 @@ export default function DesktopIcons() {
       Record<string, { x: number; y: number }>
     >(() => {
       try {
+        if (!localStorage.getItem("fakeos-desktop-grid-version")) {
+          localStorage.removeItem("fakeos-desktop-positions");
+          localStorage.setItem("fakeos-desktop-grid-version", "1");
+        }
         return JSON.parse(
           localStorage.getItem("fakeos-desktop-positions") || "{}",
         );
@@ -22,6 +26,9 @@ export default function DesktopIcons() {
       }
     });
   const moved = useRef(false);
+  const dragStart = useRef<{ key: string; index: number; x: number; y: number; element: HTMLElement } | null>(null);
+  const rows = Math.max(1, Math.floor((innerHeight - 150) / 90));
+  const snapIcons = useOS(s => s.prefs.snapIcons);
   const notify = useOS((s) => s.notify);
   const load = () =>
     fs
@@ -45,55 +52,40 @@ export default function DesktopIcons() {
         setPositions({});
       }
     };
+    const resetGrid = () => { setPositions({}); localStorage.removeItem("fakeos-desktop-positions"); };
     window.addEventListener("fakeos-layout-restored", restore);
+    window.addEventListener("fakeos-reset-icon-grid", resetGrid);
     return () => {
       window.removeEventListener("fakeos-files-changed", load);
       window.removeEventListener("fakeos-sort-icons", sort);
       window.removeEventListener("fakeos-layout-restored", restore);
+      window.removeEventListener("fakeos-reset-icon-grid", resetGrid);
     };
   }, []);
+  const slot = (key: string, index: number) => snapIcons ? positions[key] || { x: Math.floor(index / rows), y: index % rows } : positions[key] || { x: 0, y: 0 };
   const drag = (e: React.PointerEvent, key: string, index: number) => {
     if (e.button !== 0) return;
     moved.current = false;
-    const original = positions[key] || { x: 0, y: 0 },
-      x = e.clientX,
-      y = e.clientY;
-    const target = e.currentTarget as HTMLElement;
-    target.setPointerCapture(e.pointerId);
-    const move = (event: PointerEvent) => {
-      const dx = event.clientX - x,
-        dy = event.clientY - y;
-      if (Math.abs(dx) + Math.abs(dy) > 8) moved.current = true;
-      if (moved.current) {
-        const row = index % Math.max(1, Math.floor((innerHeight - 150) / 90)),
-          column = Math.floor(
-            index / Math.max(1, Math.floor((innerHeight - 150) / 90)),
-          );
-        const next = {
-          ...positions,
-          [key]: {
-            x: Math.max(
-              -column * 95,
-              Math.min(innerWidth - column * 95 - 115, original.x + dx),
-            ),
-            y: Math.max(
-              -row * 90,
-              Math.min(innerHeight - row * 90 - 200, original.y + dy),
-            ),
-          },
-        };
-        setPositions(next);
-        localStorage.setItem("fakeos-desktop-positions", JSON.stringify(next));
-      }
-    };
-    const stop = () => {
-      target.removeEventListener("pointermove", move);
-      target.removeEventListener("pointerup", stop);
-      target.removeEventListener("pointercancel", stop);
-    };
-    target.addEventListener("pointermove", move);
-    target.addEventListener("pointerup", stop);
-    target.addEventListener("pointercancel", stop);
+    const element = e.currentTarget as HTMLElement;
+    dragStart.current = { key, index, x: e.clientX, y: e.clientY, element };
+    element.setPointerCapture(e.pointerId);
+  };
+  const finishDrag = (e: React.PointerEvent) => {
+    const start = dragStart.current;
+    dragStart.current = null;
+    if (!start) return;
+    const dx = e.clientX - start.x, dy = e.clientY - start.y;
+    if (Math.abs(dx) + Math.abs(dy) < 10) return;
+    moved.current = true;
+    const rect = start.element.parentElement!.getBoundingClientRect();
+    const cols = Math.max(1, Math.floor((rect.width - 36) / 96));
+    const from = slot(start.key, start.index);
+    const to = snapIcons ? { x: Math.max(0, Math.min(cols - 1, Math.floor((e.clientX - rect.left - 20) / 96))), y: Math.max(0, Math.min(rows - 1, Math.floor((e.clientY - rect.top - 20) / 90))) } : { x: Math.max(-100, Math.min(innerWidth - 120, from.x + dx)), y: Math.max(-50, Math.min(innerHeight - 180, from.y + dy)) };
+    const occupied = snapIcons && items.find((item, index) => item.key !== start.key && slot(item.key, index).x === to.x && slot(item.key, index).y === to.y);
+    const next = { ...positions, [start.key]: to };
+    if (occupied) next[occupied.key] = from;
+    setPositions(next);
+    localStorage.setItem("fakeos-desktop-positions", JSON.stringify(next));
   };
   const items = [
     ...defaults.map((a) => ({
@@ -125,16 +117,19 @@ export default function DesktopIcons() {
       <div
         className="desktop-icons desktop-icon-layout"
         style={{
-          gridTemplateRows: `repeat(${Math.max(1, Math.floor((innerHeight - 150) / 90))},90px)`,
+          gridTemplateRows: `repeat(${rows},90px)`,
+          gridTemplateColumns: `repeat(auto-fill, 96px)`,
         }}
       >
         {items.map((item, index) => (
           <button
             key={item.key}
             style={{
-              transform: `translate(${positions[item.key]?.x || 0}px,${positions[item.key]?.y || 0}px)`,
+              ...(snapIcons ? { gridColumn: slot(item.key, index).x + 1, gridRow: slot(item.key, index).y + 1, transform: "none" } : { transform: `translate(${slot(item.key, index).x}px,${slot(item.key, index).y}px)` }),
             }}
             onPointerDown={(e) => drag(e, item.key, index)}
+            onPointerUp={finishDrag}
+            onPointerCancel={finishDrag}
             onDoubleClick={() => {
               if (!moved.current) {
                 if (item.entry)
