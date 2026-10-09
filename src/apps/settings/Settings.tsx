@@ -1,3 +1,4 @@
+import { playUiSound } from "../../services/sounds";
 import WorkspaceBackup from "../../components/WorkspaceBackup";
 import { useEffect, useState } from "react";
 import { useOS } from "../../store";
@@ -10,6 +11,7 @@ type ThemeProfile = {
 export default function Settings() {
   const { prefs: p, setPrefs, notify } = useOS();
   const [usage, setUsage] = useState("");
+  const [soundStatus, setSoundStatus] = useState("");
   const [themes, setThemes] = useState<ThemeProfile[]>(() => {
     try { const saved = JSON.parse(localStorage.getItem("fakeos-theme-profiles") || "[]"); return Array.isArray(saved) ? saved.filter((x): x is ThemeProfile => x && typeof x.name === "string" && x.prefs && typeof x.prefs === "object" && x.layout && typeof x.layout === "object" && !Array.isArray(x.layout)).map(x => ({ ...x, prefs: { ...x.prefs, sfxVolume: typeof x.prefs.sfxVolume === "number" ? x.prefs.sfxVolume : 0.55 } })) : []; } catch { return []; }
   });
@@ -149,6 +151,11 @@ export default function Settings() {
         <h3>System & accessibility</h3>
         <label>Sound effects<input type="checkbox" checked={p.sound} onChange={e => setPrefs({ sound: e.target.checked })} /></label>
         <label>Sound effect volume<input aria-label="Sound effect volume" type="range" min="0" max="1" step=".05" value={p.sfxVolume} disabled={!p.sound} onChange={e => setPrefs({ sfxVolume: Number(e.target.value) })} /></label>
+        <button data-sfx="off" disabled={!p.sound || p.sfxVolume === 0} onClick={async () => {
+          const played = await playUiSound("notification");
+          setSoundStatus(played ? "Test tone played. If you cannot hear it, check your device volume and whether this browser tab is muted." : "The browser could not start audio. Tap Test sound again or check this site's sound permissions.");
+        }}>Test sound</button>
+        {soundStatus && <p role="status">{soundStatus}</p>}
         <label>Desktop icon snap grid<input type="checkbox" checked={p.snapIcons} onChange={e => { setPrefs({ snapIcons: e.target.checked }); window.dispatchEvent(new Event("fakeos-reset-icon-grid")); }} /></label>
         <label>Desktop widgets<input type="checkbox" checked={p.widgets} onChange={e => setPrefs({ widgets: e.target.checked })} /></label>
         <label>

@@ -8,23 +8,30 @@ let lastSoundAt = 0;
 function audio() {
   if (typeof window === "undefined" || !("AudioContext" in window)) return undefined;
   try {
-    context ??= new AudioContext();
+    if (!context || context.state === "closed") { context = new AudioContext(); master = undefined; }
     if (!master) { master = context.createGain(); master.connect(context.destination); }
-    master.gain.setTargetAtTime(useOS.getState().prefs.sfxVolume, context.currentTime, 0.04);
-    if (context.state === "suspended") void context.resume().catch(() => {});
+    master.gain.setTargetAtTime(useOS.getState().prefs.sfxVolume * 2, context.currentTime, 0.04);
     return context;
   } catch { return undefined; }
 }
 
-export function unlockUiAudio() { audio(); }
-
-export function playUiSound(type: UiSound, options: { force?: boolean } = {}) {
-  const prefs = useOS.getState().prefs;
-  if (!options.force && (!prefs.sound || prefs.sfxVolume <= 0)) return;
+export function unlockUiAudio() {
   const ctx = audio();
-  if (!ctx || !master || ctx.state === "closed") return;
+  if (ctx && ctx.state !== "running") void ctx.resume().catch(() => {});
+}
+
+export async function playUiSound(type: UiSound, options: { force?: boolean } = {}) {
+  const prefs = useOS.getState().prefs;
+  if (!options.force && (!prefs.sound || prefs.sfxVolume <= 0)) return false;
+  const ctx = audio();
+  if (!ctx || !master || ctx.state === "closed") return false;
+  // Schedule after resume so the first interaction is audible too.
+  if (ctx.state !== "running") {
+    try { await ctx.resume(); } catch { return false; }
+  }
+  if (ctx.state !== "running") return false;
   const now = ctx.currentTime;
-  if (type === "click" && now - lastSoundAt < 0.035) return;
+  if (type === "click" && lastSoundAt > 0 && now - lastSoundAt < 0.035) return false;
   lastSoundAt = now;
   const play = (frequency: number, endFrequency: number, delay: number, length: number, volume: number, wave: OscillatorType = "sine") => {
     const oscillator = ctx.createOscillator(), envelope = ctx.createGain();
@@ -39,7 +46,7 @@ export function playUiSound(type: UiSound, options: { force?: boolean } = {}) {
     oscillator.start(start); oscillator.stop(end + 0.006);
   };
   switch (type) {
-    case "click": play(520, 410, 0, 0.035, 0.075, "triangle"); break;
+    case "click": play(520, 410, 0, 0.065, 0.12, "triangle"); break;
     case "toggle": play(540, 690, 0, 0.075, 0.09); play(780, 900, 0.035, 0.08, 0.055); break;
     case "open": play(420, 580, 0, 0.12, 0.075); play(620, 820, 0.055, 0.12, 0.045); break;
     case "close": play(600, 390, 0, 0.11, 0.07); break;
@@ -50,6 +57,7 @@ export function playUiSound(type: UiSound, options: { force?: boolean } = {}) {
     case "drop": play(380, 600, 0, 0.12, 0.07); break;
     case "adjust": play(450, 560, 0, 0.05, 0.04); break;
   }
+  return true;
 }
 
 export function soundForNotification(cue: SoundCue) { playUiSound(cue); }
