@@ -882,9 +882,15 @@ a {
   font-size: 12px;
   color: #cbc2dd;
 }
-.mobile-note-widget { width:100%; display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:7px; padding:13px 15px; margin:-18px 0 26px; border:1px solid #ffffff24; border-radius:17px; background:#17182788; backdrop-filter:blur(16px); color:#fff; }
+.mobile-widgets { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:-18px 0 26px; }
+.mobile-note-widget { width:100%; display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:7px; padding:13px 15px; margin:0; border:1px solid #ffffff24; border-radius:17px; background:#17182788; backdrop-filter:blur(16px); color:#fff; }
 .mobile-note-widget small { font-size:10px; letter-spacing:.1em; color:#d4c9ef; }
 .mobile-note-widget span { font-size:13px; color:#ffffffdc; }
+.mobile-weather-widget { display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; color:white; background:#17182788; backdrop-filter:blur(16px); border:1px solid #ffffff24; border-radius:17px; text-align:left; }
+.mobile-weather-widget > span:first-child { font-size:26px; }
+.mobile-weather-widget > span:last-child { display:flex; flex-direction:column; gap:3px; }
+.mobile-weather-widget b { font-size:11px; }
+.mobile-weather-widget small { font-size:9px; color:#d4c9ef; }
 .mobile-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1405,6 +1411,8 @@ a {
 .widget-note { min-height:125px; }
 .widget-note strong { font-size:1.1rem; margin-top:6px; }
 .widget-note span { line-height:1.45; margin-top:7px; }
+.widget-weather strong { margin:7px 0; font-size:1.12rem; }
+.widget-weather span { font-size:.78rem; line-height:1.4; }
 .widget-add { padding:8px 10px; justify-self:start; font-size:.75em; color:white; background:#11182782; }
 .store-app { height:100%; overflow:auto; padding:24px; }
 .store-hero { display:flex; align-items:center; justify-content:space-between; min-height:150px; padding:24px; border-radius:22px; color:white; background:radial-gradient(circle at 90% 10%,#eaa2be66,transparent 30%),linear-gradient(130deg,#463a79,#242b50); }

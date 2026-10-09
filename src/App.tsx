@@ -40,7 +40,8 @@ function MobileHomeWidget({ open }: { open: (app: AppId) => void }) {
     load(); window.addEventListener("fakeos-files-changed", load);
     return () => window.removeEventListener("fakeos-files-changed", load);
   }, []);
-  return <button className="mobile-note-widget" onClick={() => open("Notes")}><small>QUICK NOTE</small><span>{note.slice(0, 85) || "Tap to open Notes and jot something down."}</span></button>;
+  const wallpaper = useOS(s => s.prefs.wallpaper);
+  return <div className="mobile-widgets"><button className="mobile-note-widget" onClick={() => open("Notes")}><small>QUICK NOTE</small><span>{note.slice(0, 85) || "Tap to open Notes and jot something down."}</span></button><button className="mobile-weather-widget" onClick={() => open("Settings")}><span>{wallpaper === "ocean" ? "🌊" : wallpaper === "dusk" ? "🌅" : wallpaper === "midnight" ? "🌙" : "✨"}</span><span><b>{wallpaper === "ocean" ? "Ocean breeze" : wallpaper === "dusk" ? "Golden hour" : wallpaper === "midnight" ? "Clear night" : "Aurora skies"}</b><small>Wallpaper mood · simulated</small></span></button></div>;
 }
 export default function App() {
   const os = useOS(),
